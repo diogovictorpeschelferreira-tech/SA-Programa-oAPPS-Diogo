@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduPortal • Gestão de Notas</title>
+    <!-- Fontes modernas do Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="index.html">
+    <style>
+        :root {
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-light: #eef2ff;
+            --border: #e2e8f0;
+            --focus-ring: rgba(79, 70, 229, 0.18);
+            
+            /* Cores de Status */
+            --success-bg: #dcfce7;
+            --success-text: #15803d;
+            --warning-bg: #fef3c7;
+            --warning-text: #b45309;
+            --danger-bg: #fee2e2;
+            --danger-text: #b91c1c;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-body);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.06) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(14, 165, 233, 0.06) 0px, transparent 50%);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .wrapper {
+            width: 100%;
+            max-width: 1040px;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        /* Cabeçalho */
+        header {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .badge-header {
+            display: inline-block;
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.8rem;
+            padding: 6px 14px;
+            border-radius: 999px;
+            margin-bottom: 12px;
+            letter-spacing: 0.02em;
+        }
+
+        header h1 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        /* Alerta de Erro */
+        .erro-alert {
+            background-color: var(--danger-bg);
+            color: var(--danger-text);
+            border: 1px solid #fecaca;
+            padding: 14px 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.05);
+        }
+
+        /* Grid de Alunos */
+        .alunos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        /* Card Individual */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 26px;
+            box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.03), 0 2px 4px -2px rgba(15, 23, 42, 0.03);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 20px -5px rgba(15, 23, 42, 0.07);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .avatar-num {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: var(--primary-light);
+            color: var(--primary);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+        }
+
+        .card-header h3 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+        }
+
+        /* Formulário e Inputs */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 6px;
+        }
+
+        input {
+            width: 100%;
+            padding: 11px 14px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            background-color: #f8fafc;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            transition: all 0.2s ease;
+        }
+
+        input:focus {
+            outline: none;
+            background-color: #ffffff;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--focus-ring);
+        }
+
+        .notas-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 18px;
+            padding-top: 16px;
+            border-top: 1px dashed var(--border);
+        }
+
+        .notas-row input {
+            text-align: center;
+            font-weight: 600;
+            padding: 10px 6px;
+        }
+
+        /* Botões */
+        .actions {
+            display: flex;
+            justify-content: center;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: var(--primary);
+            color: #ffffff;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            padding: 15px 32px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+            width: 100%;
+            max-width: 360px;
+        }
+
+        .btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
+        }
+
+        .btn-secondary {
+            background: #ffffff;
+            color: var(--text-main);
+            border: 1.5px solid var(--border);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+        }
+
+        .btn-secondary:hover {
+            background: #f1f5f9;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Cards de Resultado / Boletim */
+        .resultado-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            text-align: center;
+        }
+
+        .aluno-nome {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 4px;
+        }
+
+        .aluno-idade {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 22px;
+        }
+
+        .media-box {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .media-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            font-weight: 700;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .media-valor {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 2.25rem;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        /* Badges de Situação */
+        .status-pill {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+        }
+
+        .aprovado {
+            background-color: var(--success-bg);
+            color: var(--success-text);
+        }
+
+        .recuperacao {
+            background-color: var(--warning-bg);
+            color: var(--warning-text);
+        }
+
+        .reprovado {
+            background-color: var(--danger-bg);
+            color: var(--danger-text);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 640px) {
+            body { padding: 24px 16px; }
+            header h1 { font-size: 1.75rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <header>
+        <span class="badge-header">Sistema Acadêmico • Flask + Python</span>
+        <h1>Portal de Avaliação Escolar</h1>
+        <p>Cadastre os alunos, lance as três notas bimestrais e gere o boletim automaticamente.</p>
+    </header>
+
+    {% if erro %}
+        <div class="erro-alert">
+            <span>⚠️</span>
+            <span>{{ erro }}</span>
+        </div>
+    {% endif %}
+
+    {% if not resultado %}
+    <form method="POST">
+        <div class="alunos-grid">
+            {% for i in range(1, 4) %}
+            <div class="card">
+                <div class="card-header">
+                    <div class="avatar-num">{{ i }}</div>
+                    <h3>Aluno 0{{ i }}</h3>
+                </div>
+
+                <div class="form-group">
+                    <label for="nome{{ i }}">Nome Completo</label>
+                    <input type="text" id="nome{{ i }}" name="nome{{ i }}" placeholder="Ex: Ana Silva" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="idade{{ i }}">Idade (14 a 18 anos)</label>
+                    <input type="number" id="idade{{ i }}" name="idade{{ i }}" min="14" max="18" placeholder="Ex: 16" required>
+                </div>
+
+                <div class="notas-row">
+                    <div>
+                        <label for="nota{{ i }}_1">Nota 1</label>
+                        <input type="number" step="0.1" id="nota{{ i }}_1" name="nota{{ i }}_1" min="0" max="10" placeholder="0.0" required>
+                    </div>
+                    <div>
+                        <label for="nota{{ i }}_2">Nota 2</label>
+                        <input type="number" step="0.1" id="nota{{ i }}_2" name="nota{{ i }}_2" min="0" max="10" placeholder="0.0" required>
+                    </div>
+                    <div>
+                        <label for="nota{{ i }}_3">Nota 3</label>
+                        <input type="number" step="0.1" id="nota{{ i }}_3" name="nota{{ i }}_3" min="0" max="10" placeholder="0.0" required>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="actions">
+            <button type="submit" class="btn">Gerar Boletim Final →</button>
+        </div>
+    </form>
+
+    {% else %}
+    <div class="alunos-grid">
+        {% for aluno in resultado %}
+        <div class="card resultado-card">
+            <div>
+                <h2 class="aluno-nome">{{ aluno.nome }}</h2>
+                <p class="aluno-idade">{{ aluno.idade }} anos</p>
+
+                <div class="media-box">
+                    <span class="media-label">Média Final</span>
+                    <span class="media-valor">{{ "%.2f"|format(aluno.media) }}</span>
+                </div>
+            </div>
+
+            <div>
+                <span class="status-pill {{ aluno.status_class }}">{{ aluno.situacao }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="actions">
+        <a href="/" class="btn btn-secondary">← Cadastrar Nova Turma</a>
+    </div>
+    {% endif %}
+</div>
+
+</body>
+</html>

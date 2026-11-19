@@ -2,6 +2,30 @@ from flask import Flask, render_template, request
 
 app = Flask(__name__)
 
+NUM_ALUNOS = 3
+NUM_NOTAS = 3
+
+
+def ler_numero(campo, tipo, rotulo):
+    """Lê um campo do formulário e converte para int/float.
+    Aceita vírgula decimal (7,5) e gera mensagens de erro amigáveis."""
+    valor = (request.form.get(campo) or "").strip().replace(",", ".")
+    if not valor:
+        raise ValueError(f"Preencha {rotulo}.")
+    try:
+        return tipo(valor)
+    except ValueError:
+        raise ValueError(f"Valor inválido em {rotulo}: '{valor}'.")
+
+
+def classificar(media):
+    if media >= 7:
+        return "FOI APROVADO", "aprovado"
+    if media >= 5:
+        return "FICOU EM RECUPERAÇÃO", "recuperacao"
+    return "FOI REPROVADO", "reprovado"
+
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     resultado = None
@@ -9,65 +33,45 @@ def index():
 
     if request.method == "POST":
         try:
-            # Captura os nomes
-            nomes = [
-                request.form.get("nome1"),
-                request.form.get("nome2"),
-                request.form.get("nome3")
-            ]
+            alunos = []
 
-            # Captura e valida as idades
-            idades = [
-                int(request.form.get("idade1")),
-                int(request.form.get("idade2")),
-                int(request.form.get("idade3"))
-            ]
+            for i in range(1, NUM_ALUNOS + 1):
+                nome = (request.form.get(f"nome{i}") or "").strip()
+                if not nome:
+                    raise ValueError(f"Informe o nome do aluno {i}.")
 
-            for i, idade in enumerate(idades):
+                idade = ler_numero(f"idade{i}", int, f"a idade de {nome}")
                 if not (14 <= idade <= 18):
-                    raise ValueError(f"O aluno {nomes[i]} deve ter entre 14 e 18 anos.")
+                    raise ValueError(f"O aluno {nome} deve ter entre 14 e 18 anos.")
 
-            # Captura e valida as notas (3 notas por aluno)
-            notas = []
-            for i in range(3):
-                n1 = float(request.form.get(f"nota{i+1}_1"))
-                n2 = float(request.form.get(f"nota{i+1}_2"))
-                n3 = float(request.form.get(f"nota{i+1}_3"))
-                
-                for n in [n1, n2, n3]:
-                    if not (0 <= n <= 10):
-                        raise ValueError(f"As notas do aluno {nomes[i]} devem estar entre 0 e 10.")
-                
-                notas.append([n1, n2, n3])
+                notas = []
+                for n in range(1, NUM_NOTAS + 1):
+                    nota = ler_numero(f"nota{i}_{n}", float, f"a nota {n} de {nome}")
+                    if not (0 <= nota <= 10):
+                        raise ValueError(f"As notas do aluno {nome} devem estar entre 0 e 10.")
+                    notas.append(nota)
 
-            # Cálculo das médias e situações
-            alunos_resultado = []
-            for i in range(3):
-                media = sum(notas[i]) / 3
-                if media >= 7:
-                    situacao = "FOI APROVADO"
-                    status_class = "aprovado"
-                elif media >= 5:
-                    situacao = "FICOU EM RECUPERAÇÃO"
-                    status_class = "recuperacao"
-                else:
-                    situacao = "FOI REPROVADO"
-                    status_class = "reprovado"
+                # Arredonda ANTES de classificar: evita que erros de ponto
+                # flutuante (ex.: 6.999999999) mostrem 7.0 mas reprovem na recuperação
+                media = round(sum(notas) / NUM_NOTAS, 2)
+                situacao, status_class = classificar(media)
 
-                alunos_resultado.append({
-                    "nome": nomes[i],
-                    "idade": idades[i],
-                    "media": round(media, 2),
+                alunos.append({
+                    "nome": nome,
+                    "idade": idade,
+                    "media": media,
                     "situacao": situacao,
-                    "status_class": status_class
+                    "status_class": status_class,
                 })
 
-            resultado = alunos_resultado
+            resultado = alunos
 
         except ValueError as e:
             erro = str(e)
 
     return render_template("index.html", resultado=resultado, erro=erro)
 
+
 if __name__ == "__main__":
+    # debug=True só em desenvolvimento
     app.run(debug=True)
